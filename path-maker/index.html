@@ -1,0 +1,87 @@
+<html>
+
+<head>
+    <title>Home</title>
+    <script>
+        const points = fetch('data.csv')
+            .then(response => response.text())
+            .then(data => {
+                const rows = data.split('\n');
+                const coordinates = rows.map(row => {
+                    const [x, y] = row.split(',');
+                    return { x: parseInt(x), y: parseInt(y) };
+                });
+                console.log(coordinates);
+                return coordinates;
+            })
+            .catch(error => {
+                console.error('Error loading the CSV file:', error);
+                return [];
+            });
+    </script>
+</head>
+
+<body>
+    <canvas>
+
+    </canvas>
+    <script>
+        const canvas = document.querySelector('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1000;
+        canvas.height = 1000;
+
+        const scaleFactor = 100 / 5000; // Scale factor to fit points within the canvas
+        points.then(coordinates => {
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            coordinates.forEach(point => {
+                const x = point.x * scaleFactor;
+                const y = point.y * scaleFactor;
+                ctx.fillRect(x, y, 2, 2);
+            });
+        });
+
+        const drawnPath = [];
+
+        canvas.addEventListener('click', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left - canvas.width / 2;
+            const y = event.clientY - rect.top - canvas.height / 2;
+            const originalX = x / scaleFactor;
+            const originalY = y / scaleFactor;
+
+            drawnPath.push({ x: originalX, y: originalY });
+
+            if (drawnPath.length > 1) {
+                const lastPoint = drawnPath[drawnPath.length - 2];
+                ctx.beginPath();
+                ctx.moveTo(lastPoint.x * scaleFactor, lastPoint.y * scaleFactor);
+                ctx.lineTo(originalX * scaleFactor, originalY * scaleFactor);
+                ctx.strokeStyle = 'red'; // Set the stroke color to red
+                ctx.stroke();
+            }
+            if (drawnPath.length === 1) {
+                ctx.beginPath();
+                ctx.arc(originalX * scaleFactor, originalY * scaleFactor, 5, 0, 2 * Math.PI);
+                ctx.fillStyle = 'green'; // Set the fill color to green
+                ctx.fill();
+            }
+        });
+
+    </script>
+</body>
+
+</html>
+<button id="exportButton">Export to JSON</button>
+<script>
+    document.getElementById('exportButton').addEventListener('click', () => {
+        const json = JSON.stringify(drawnPath, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'drawnPath.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+</script>

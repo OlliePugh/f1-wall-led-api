@@ -1,0 +1,15 @@
+{
+  "name": "f1-led",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "^1.1.13"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "start": "bun index.ts",
+    "build": "bun build index.ts"
+  }
+}
