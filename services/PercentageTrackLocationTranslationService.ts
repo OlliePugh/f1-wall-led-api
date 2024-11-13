@@ -13,7 +13,7 @@ export default class PercentageTrackLocationTranslationService
     );
   }
 
-  translateLocation(location: TrackLocation): number {
+  translateLocation = (location: TrackLocation): number => {
     let closestDistance = Infinity;
     let closestPercentage = 0;
 
@@ -55,5 +55,5 @@ export default class PercentageTrackLocationTranslationService
     }
 
     return Math.max(0, Math.min(closestPercentage * 100, 100));
-  }
+  };
 }

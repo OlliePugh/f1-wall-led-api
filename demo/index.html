@@ -1,0 +1,85 @@
+<html>
+
+<head></head>
+
+<body>
+    <canvas></canvas>
+
+    <script type="module">
+
+        let locations = [];
+
+        const driverResponse = await fetch('http://localhost:8080/drivers');
+        const drivers = await driverResponse.json();
+
+        let fakeStartTime;
+        let realStartTime = Date.now();
+
+        const fetchLocations = async () => {
+            const response = await fetch('http://localhost:8080/locations');
+            const data = await response.json();
+
+            if (fakeStartTime == null && data.locations.length > 0) {
+                fakeStartTime = data.locations[0].date
+            }
+
+            return data.locations;
+        }
+
+        setInterval(async () => {
+            const newLocations = await fetchLocations();
+
+            const firstNew = newLocations?.[0];
+            if (firstNew == null) {
+                return;
+            }
+
+            const clashingLocations = locations.findIndex(x => x.driverId === firstNew.driverId && x.date === firstNew.date);
+
+            if (clashingLocations !== -1) {
+                locations.splice(clashingLocations, 1);
+            }
+
+            locations = locations.concat(newLocations);
+        }, 1000);
+
+        setInterval(async () => {
+
+            // calculate fake now
+            const fakeNow = fakeStartTime + (Date.now() - realStartTime);
+
+            // loop through each driver and draw their location
+            const canvas = document.querySelector('canvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const positions = drivers.map(driver => {
+                const location = locations.find(loc => loc.driverNumber === driver.driverNumber && loc.date >= fakeNow);
+                return { ...location, color: driver.teamColor };
+            });
+
+            // for each driver draw a dot at their location where 0 is the left and 100 is the right of the screen
+            positions.forEach((position, index) => {
+                if (position == null) {
+                    return;
+                }
+
+                const x = (position.location / 100) * canvas.width;
+                ctx.beginPath();
+                ctx.arc(x, canvas.height / 2, 5, 0, 2 * Math.PI);
+                ctx.fillStyle = "#" + position.color;
+                ctx.fill();
+            });
+
+            // clear all locations older than the current time
+            locations = locations.filter(loc => new Date(loc.date) >= fakeNow);
+        }, 1000 / 24);
+
+    </script>
+</body>
+
+</html>
