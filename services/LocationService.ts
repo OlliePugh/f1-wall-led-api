@@ -1,4 +1,3 @@
-import type { Driver } from "./IDriverService";
 import type ILocationService from "./ILocationService";
 import type { TrackLocation } from "./ILocationService";
 import { EventEmitter } from "events";
@@ -9,7 +8,7 @@ export default class LocationService
 {
   private static readonly LOCATIONS_URL = "https://api.openf1.org/v1/location";
   private static readonly POLLING_TIME = 5000;
-  private static readonly KEEP_DATA_FOR = 20_000;
+  private static readonly KEEP_DATA_FOR = 5_000;
 
   private actualStartTime: number = Date.now();
   public locations: TrackLocation[] = [];
@@ -35,8 +34,15 @@ export default class LocationService
 
     const builtUrl = `${requestUrl.toString()}&date>${afterTime}&date<${beforeTime}`;
 
-    const request = await fetch(builtUrl);
-    const payload = await request.json();
+    let payload;
+    try {
+      const request = await fetch(builtUrl);
+      payload = await request.json();
+    } catch (error) {
+      console.error(error);
+      console.log(payload);
+      return [];
+    }
 
     if (!Array.isArray(payload)) {
       throw new Error("Invalid response from server");

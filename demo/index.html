@@ -12,6 +12,9 @@
         const driverResponse = await fetch('http://localhost:8080/drivers');
         const drivers = await driverResponse.json();
 
+        // how far behind the real time the fake time should be
+        const timeBehind = 5000;
+
         let fakeStartTime;
         let realStartTime = Date.now();
 
@@ -20,7 +23,7 @@
             const data = await response.json();
 
             if (fakeStartTime == null && data.locations.length > 0) {
-                fakeStartTime = data.locations[0].date
+                fakeStartTime = data.locations[0].date - timeBehind;
             }
 
             return data.locations;

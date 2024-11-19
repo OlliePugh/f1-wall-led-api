@@ -14,7 +14,7 @@ app.use(cors());
 
 const port = 8080;
 const timeBehind = 20_000; // aim to be 20 seconds behind
-const fakeStartTime = new Date("2024-09-22T12:33:35.200Z");
+const fakeStartTime = new Date("2024-09-22T12:03:00.200Z");
 
 // load in data/singapore-2023-track.json
 const trackData: Coordinate[] = JSON.parse(
@@ -31,6 +31,7 @@ const trackPositionTranslaterService =
 const locationService = new LocationService(10_000, fakeStartTime.getTime());
 
 app.get("/locations", (req, res) => {
+  console.log("GET /locations");
   res.send({
     locations: locationService.locations.map((x) => ({
       driverNumber: x.driverNumber,
@@ -41,6 +42,7 @@ app.get("/locations", (req, res) => {
 });
 
 app.get("/drivers", (req, res) => {
+  console.log("GET /drivers");
   res.send(drivers);
 });
 

@@ -1,3 +1,4 @@
+import { request } from "express";
 import type { Driver } from "./IDriverService";
 import type IDriverService from "./IDriverService";
 
@@ -6,10 +7,19 @@ export default class DriverService implements IDriverService {
 
   async getDrivers(): Promise<Driver[]> {
     const requestUrl = new URL(DriverService.DRIVERS_URL);
-    requestUrl.searchParams.append("session_key", "latest");
-    requestUrl.searchParams.append("meeting_key", "latest");
-    const request = await fetch(requestUrl);
-    const payload = await request.json();
+    requestUrl.searchParams.append("session_key", "9606");
+    // requestUrl.searchParams.append("meeting_key", "latest");
+    let payload;
+    try {
+      console.log("Requesting drivers from", requestUrl.toString());
+      const request = await fetch(requestUrl);
+      console.log("Response status", request.status);
+      payload = await request.json();
+    } catch (error) {
+      console.error(error);
+      console.log(payload);
+      return [];
+    }
 
     if (!Array.isArray(payload)) {
       throw new Error("Invalid response from server");

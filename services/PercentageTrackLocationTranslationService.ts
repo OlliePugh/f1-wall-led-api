@@ -54,6 +54,9 @@ export default class PercentageTrackLocationTranslationService
       }
     }
 
-    return Math.max(0, Math.min(closestPercentage * 100, 100));
+    return Math.max(
+      0,
+      Math.min(parseFloat((closestPercentage * 100).toFixed(4)), 100)
+    );
   };
 }
