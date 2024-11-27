@@ -3,13 +3,11 @@
 <head>
     <title>Home</title>
     <script>
-        const points = fetch('data.csv')
-            .then(response => response.text())
+        const points = fetch('vegas-quali-2024.json')
+            .then(response => response.json())
             .then(data => {
-                const rows = data.split('\n');
-                const coordinates = rows.map(row => {
-                    const [x, y] = row.split(',');
-                    return { x: parseInt(x), y: parseInt(y) };
+                const coordinates = data.map(row => {
+                    return { x: row.x, y: row.y };
                 });
                 console.log(coordinates);
                 return coordinates;

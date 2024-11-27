@@ -8,7 +8,7 @@ export default class LocationService
 {
   private static readonly LOCATIONS_URL = "https://api.openf1.org/v1/location";
   private static readonly POLLING_TIME = 5000;
-  private static readonly KEEP_DATA_FOR = 5_000;
+  private static readonly KEEP_DATA_FOR = 15_000;
 
   private actualStartTime: number = Date.now();
   public locations: TrackLocation[] = [];
@@ -26,21 +26,25 @@ export default class LocationService
 
   async fetchLocations(): Promise<TrackLocation[]> {
     const requestUrl = new URL(LocationService.LOCATIONS_URL);
-    requestUrl.searchParams.append("session_key", "9606");
+    requestUrl.searchParams.append("session_key", "latest");
     const currentNow = this.startTime + (Date.now() - this.actualStartTime);
 
-    const afterTime = new Date(currentNow - this.timeBehindLive).toISOString();
-    const beforeTime = new Date(currentNow).toISOString();
+    const afterTime = new Date(
+      currentNow - this.timeBehindLive - LocationService.KEEP_DATA_FOR
+    ).toISOString();
+    const beforeTime = new Date(currentNow - this.timeBehindLive).toISOString();
 
     const builtUrl = `${requestUrl.toString()}&date>${afterTime}&date<${beforeTime}`;
 
     let payload;
+    let request;
     try {
-      const request = await fetch(builtUrl);
+      console.log("Fetching locations from", builtUrl);
+      request = await fetch(builtUrl);
       payload = await request.json();
     } catch (error) {
       console.error(error);
-      console.log(payload);
+      console.log(request);
       return [];
     }
 
@@ -76,7 +80,7 @@ export default class LocationService
   }
 
   updateLocations(newLocations: TrackLocation[]) {
-    const firstLocationTimeInNewLocations = newLocations?.[0].date;
+    const firstLocationTimeInNewLocations = newLocations?.[0]?.date;
 
     this.removeOutdatedLocations();
 

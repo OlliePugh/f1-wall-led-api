@@ -7,7 +7,7 @@ export default class DriverService implements IDriverService {
 
   async getDrivers(): Promise<Driver[]> {
     const requestUrl = new URL(DriverService.DRIVERS_URL);
-    requestUrl.searchParams.append("session_key", "9606");
+    requestUrl.searchParams.append("session_key", "latest");
     // requestUrl.searchParams.append("meeting_key", "latest");
     let payload;
     try {

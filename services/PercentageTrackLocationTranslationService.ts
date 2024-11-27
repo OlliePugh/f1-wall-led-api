@@ -17,9 +17,9 @@ export default class PercentageTrackLocationTranslationService
     let closestDistance = Infinity;
     let closestPercentage = 0;
 
-    for (let i = 0; i < this.trackSpline.length - 1; i++) {
+    for (let i = 0; i < this.trackSpline.length; i++) {
       const point1 = this.trackSpline[i];
-      const point2 = this.trackSpline[i + 1];
+      const point2 = this.trackSpline[(i + 1) % this.trackSpline.length];
 
       const A = location.x - point1.x;
       const B = location.y - point1.y;
@@ -50,7 +50,7 @@ export default class PercentageTrackLocationTranslationService
 
       if (distance < closestDistance) {
         closestDistance = distance;
-        closestPercentage = (i + param) / (this.trackSpline.length - 1);
+        closestPercentage = (i + param) / this.trackSpline.length;
       }
     }
 
