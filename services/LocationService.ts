@@ -26,7 +26,7 @@ export default class LocationService
 
   async fetchLocations(): Promise<TrackLocation[]> {
     const requestUrl = new URL(LocationService.LOCATIONS_URL);
-    requestUrl.searchParams.append("session_key", "latest");
+    // requestUrl.searchParams.append("session_key", "latest");
     const currentNow = this.startTime + (Date.now() - this.actualStartTime);
 
     const afterTime = new Date(
@@ -34,7 +34,7 @@ export default class LocationService
     ).toISOString();
     const beforeTime = new Date(currentNow - this.timeBehindLive).toISOString();
 
-    const builtUrl = `${requestUrl.toString()}&date>${afterTime}&date<${beforeTime}`;
+    const builtUrl = `${requestUrl.toString()}?date>${afterTime}&date<${beforeTime}`;
 
     let payload;
     let request;

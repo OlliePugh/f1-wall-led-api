@@ -15,48 +15,39 @@ export default class PercentageTrackLocationTranslationService
 
   translateLocation = (location: TrackLocation): number => {
     let closestDistance = Infinity;
-    let closestPercentage = 0;
+    let closestIndex = 0;
+    let totalDistance = 0;
+    let distanceToClosestPoint = 0;
 
     for (let i = 0; i < this.trackSpline.length; i++) {
       const point1 = this.trackSpline[i];
-      const point2 = this.trackSpline[(i + 1) % this.trackSpline.length];
+      const point2 = this.trackSpline[(i + 1) % this.trackSpline.length]; // Wrap around to the first point
+      const segmentDistance = this.getDistance(point1, point2);
+      totalDistance += segmentDistance;
 
-      const A = location.x - point1.x;
-      const B = location.y - point1.y;
-      const C = point2.x - point1.x;
-      const D = point2.y - point1.y;
+      const t =
+        ((location.x - point1.x) * (point2.x - point1.x) +
+          (location.y - point1.y) * (point2.y - point1.y)) /
+        Math.pow(segmentDistance, 2);
+      const tClamped = Math.max(0, Math.min(1, t));
+      const closestPoint = {
+        x: point1.x + tClamped * (point2.x - point1.x),
+        y: point1.y + tClamped * (point2.y - point1.y),
+      };
 
-      const dot = A * C + B * D;
-      const len_sq = C * C + D * D;
-      const param = len_sq !== 0 ? dot / len_sq : -1;
-
-      let xx, yy;
-
-      if (param < 0) {
-        xx = point1.x;
-        yy = point1.y;
-      } else if (param > 1) {
-        xx = point2.x;
-        yy = point2.y;
-      } else {
-        xx = point1.x + param * C;
-        yy = point1.y + param * D;
-      }
-
-      const distance = this.getDistance(
-        { x: xx, y: yy },
-        { x: location.x, y: location.y }
-      );
-
+      const distance = this.getDistance(location, closestPoint);
       if (distance < closestDistance) {
         closestDistance = distance;
-        closestPercentage = (i + param) / this.trackSpline.length;
+        closestIndex = i;
+        distanceToClosestPoint =
+          totalDistance -
+          segmentDistance +
+          this.getDistance(point1, closestPoint);
       }
     }
 
-    return Math.max(
-      0,
-      Math.min(parseFloat((closestPercentage * 100).toFixed(4)), 100)
+    return parseFloat(
+      ((distanceToClosestPoint / totalDistance) * 100).toFixed(2)
     );
   };
 }

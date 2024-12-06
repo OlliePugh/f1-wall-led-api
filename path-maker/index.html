@@ -30,7 +30,9 @@
         canvas.height = 1000;
 
         const scaleFactor = 100 / 5000; // Scale factor to fit points within the canvas
-        points.then(coordinates => {
+        let coordinates = [];
+        points.then(data => {
+            coordinates = data;
             ctx.translate(canvas.width / 2, canvas.height / 2);
             coordinates.forEach(point => {
                 const x = point.x * scaleFactor;
@@ -57,12 +59,207 @@
                 ctx.lineTo(originalX * scaleFactor, originalY * scaleFactor);
                 ctx.strokeStyle = 'red'; // Set the stroke color to red
                 ctx.stroke();
+
+                let totalLength = 0;
+                for (let i = 1; i < drawnPath.length; i++) {
+                    const dx = drawnPath[i].x - drawnPath[i - 1].x;
+                    const dy = drawnPath[i].y - drawnPath[i - 1].y;
+                    totalLength += Math.sqrt(dx * dx + dy * dy);
+                }
+                console.log('Total length of the drawn path:', totalLength);
+
+                // get the position on the path at 10% intervals
+                const pathLength = totalLength;
+                const intervals = 10;
+                const intervalLength = pathLength / intervals;
+
+                // clear the canvas before drawing
+                ctx.clearRect(-canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+
+                // redraw the original points
+                coordinates.forEach(point => {
+                    const x = point.x * scaleFactor;
+                    const y = point.y * scaleFactor;
+                    ctx.fillRect(x, y, 2, 2);
+                });
+
+                // draw a dot at each interval
+                for (let i = 0; i <= intervals; i++) {
+                    const targetLength = i * intervalLength;
+                    let currentLength = 0;
+                    for (let j = 1; j < drawnPath.length; j++) {
+                        const dx = drawnPath[j].x - drawnPath[j - 1].x;
+                        const dy = drawnPath[j].y - drawnPath[j - 1].y;
+                        const segmentLength = Math.sqrt(dx * dx + dy * dy);
+                        if (currentLength + segmentLength >= targetLength) {
+                            const t = (targetLength - currentLength) / segmentLength;
+                            const x = drawnPath[j - 1].x + t * dx;
+                            let isDragging = false;
+                            let draggedPointIndex = -1;
+
+                            canvas.addEventListener('mousedown', (event) => {
+                                const rect = canvas.getBoundingClientRect();
+                                const x = event.clientX - rect.left - canvas.width / 2;
+                                const y = event.clientY - rect.top - canvas.height / 2;
+                                const originalX = x / scaleFactor;
+                                const originalY = y / scaleFactor;
+
+                                for (let i = 0; i < drawnPath.length; i++) {
+                                    const point = drawnPath[i];
+                                    const dx = point.x - originalX;
+                                    const dy = point.y - originalY;
+                                    if (Math.sqrt(dx * dx + dy * dy) < 5 / scaleFactor) {
+                                        isDragging = true;
+                                        draggedPointIndex = i;
+                                        break;
+                                    }
+                                }
+                            });
+
+                            canvas.addEventListener('mousemove', (event) => {
+                                if (isDragging && draggedPointIndex !== -1) {
+                                    const rect = canvas.getBoundingClientRect();
+                                    const x = event.clientX - rect.left - canvas.width / 2;
+                                    const y = event.clientY - rect.top - canvas.height / 2;
+                                    const originalX = x / scaleFactor;
+                                    const originalY = y / scaleFactor;
+
+                                    drawnPath[draggedPointIndex] = { x: originalX, y: originalY };
+
+                                    ctx.clearRect(-canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+
+                                    coordinates.forEach(point => {
+                                        const x = point.x * scaleFactor;
+                                        const y = point.y * scaleFactor;
+                                        ctx.fillRect(x, y, 2, 2);
+                                    });
+
+                                    drawnPath.forEach((point, index) => {
+                                        if (index === 0) {
+                                            ctx.beginPath();
+                                            ctx.arc(point.x * scaleFactor, point.y * scaleFactor, 5, 0, 2 * Math.PI);
+                                            ctx.fillStyle = 'green';
+                                            ctx.fill();
+                                            return;
+                                        }
+                                        const lastPoint = drawnPath[index - 1];
+                                        ctx.beginPath();
+                                        ctx.moveTo(lastPoint.x * scaleFactor, lastPoint.y * scaleFactor);
+                                        ctx.lineTo(point.x * scaleFactor, point.y * scaleFactor);
+                                        ctx.strokeStyle = 'red';
+                                        ctx.stroke();
+                                    });
+
+                                    for (let i = 0; i <= intervals; i++) {
+                                        const targetLength = i * intervalLength;
+                                        let currentLength = 0;
+                                        for (let j = 1; j < drawnPath.length; j++) {
+                                            const dx = drawnPath[j].x - drawnPath[j - 1].x;
+                                            const dy = drawnPath[j].y - drawnPath[j - 1].y;
+                                            const segmentLength = Math.sqrt(dx * dx + dy * dy);
+                                            if (currentLength + segmentLength >= targetLength) {
+                                                const t = (targetLength - currentLength) / segmentLength;
+                                                const x = drawnPath[j - 1].x + t * dx;
+                                                const y = drawnPath[j - 1].y + t * dy;
+                                                ctx.beginPath();
+                                                ctx.arc(x * scaleFactor, y * scaleFactor, 5, 0, 2 * Math.PI);
+                                                ctx.fillStyle = 'blue';
+                                                ctx.fill();
+                                                break;
+                                            }
+                                            currentLength += segmentLength;
+                                        }
+                                    }
+                                }
+                            });
+
+                            canvas.addEventListener('mouseup', () => {
+                                isDragging = false;
+                                draggedPointIndex = -1;
+                            });
+                            const y = drawnPath[j - 1].y + t * dy;
+                            ctx.beginPath();
+                            ctx.arc(x * scaleFactor, y * scaleFactor, 5, 0, 2 * Math.PI);
+                            ctx.fillStyle = 'blue'; // Set the fill color to blue
+                            ctx.fill();
+                            break;
+                        }
+                        currentLength += segmentLength;
+                    }
+                }
             }
+
+            // for each position draw a line between them
+            drawnPath.forEach((point, index) => {
+                if (index === 0) {
+                    return;
+                }
+                const lastPoint = drawnPath[index - 1];
+                ctx.beginPath();
+                ctx.moveTo(lastPoint.x * scaleFactor, lastPoint.y * scaleFactor);
+                ctx.lineTo(point.x * scaleFactor, point.y * scaleFactor);
+                ctx.strokeStyle = 'red'; // Set the stroke color to red
+                ctx.stroke();
+            });
+
             if (drawnPath.length === 1) {
                 ctx.beginPath();
                 ctx.arc(originalX * scaleFactor, originalY * scaleFactor, 5, 0, 2 * Math.PI);
                 ctx.fillStyle = 'green'; // Set the fill color to green
                 ctx.fill();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.metaKey && event.key === 'z') {
+                if (drawnPath.length > 0) {
+                    drawnPath.pop();
+
+                    ctx.clearRect(-canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+
+                    coordinates.forEach(point => {
+                        const x = point.x * scaleFactor;
+                        const y = point.y * scaleFactor;
+                        ctx.fillRect(x, y, 2, 2);
+                    });
+
+                    drawnPath.forEach((point, index) => {
+                        if (index === 0) {
+                            ctx.beginPath();
+                            ctx.arc(point.x * scaleFactor, point.y * scaleFactor, 5, 0, 2 * Math.PI);
+                            ctx.fillStyle = 'green';
+                            ctx.fill();
+                            return;
+                        }
+                        const lastPoint = drawnPath[index - 1];
+                        ctx.beginPath();
+                        ctx.moveTo(lastPoint.x * scaleFactor, lastPoint.y * scaleFactor);
+                        ctx.lineTo(point.x * scaleFactor, point.y * scaleFactor);
+                        ctx.strokeStyle = 'red';
+                        ctx.stroke();
+                    });
+
+                    for (let i = 0; i <= intervals; i++) {
+                        const targetLength = i * intervalLength;
+                        let currentLength = 0;
+                        for (let j = 1; j < drawnPath.length; j++) {
+                            const dx = drawnPath[j].x - drawnPath[j - 1].x;
+                            const dy = drawnPath[j].y - drawnPath[j - 1].y;
+                            const segmentLength = Math.sqrt(dx * dx + dy * dy);
+                            if (currentLength + segmentLength >= targetLength) {
+                                const t = (targetLength - currentLength) / segmentLength;
+                                const x = drawnPath[j - 1].x + t * dx;
+                                const y = drawnPath[j - 1].y + t * dy;
+                                ctx.beginPath();
+                                ctx.arc(x * scaleFactor, y * scaleFactor, 5, 0, 2 * Math.PI);
+                                ctx.fillStyle = 'blue';
+                                ctx.fill();
+                                break;
+                            }
+                            currentLength += segmentLength;
+                        }
+                    }
+                }
             }
         });
 
