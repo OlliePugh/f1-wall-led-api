@@ -8,9 +8,9 @@ export default class LocationService
 {
   private static readonly LOCATIONS_URL = "https://api.openf1.org/v1/location";
   private static readonly POLLING_TIME = 5000;
-  private static readonly KEEP_DATA_FOR = 15_000;
+  private static readonly KEEP_DATA_FOR = 10_000;
 
-  private actualStartTime: number = Date.now();
+  private actualStartTime: number;
   public locations: TrackLocation[] = [];
 
   constructor(
@@ -18,15 +18,19 @@ export default class LocationService
     private readonly startTime: number = Date.now()
   ) {
     super();
+    this.actualStartTime = Date.now();
   }
 
-  initialise() {
+  async initialise() {
+    this.fetchLocations();
     setInterval(this.fetchLocations.bind(this), LocationService.POLLING_TIME);
   }
 
   async fetchLocations(): Promise<TrackLocation[]> {
     const requestUrl = new URL(LocationService.LOCATIONS_URL);
     // requestUrl.searchParams.append("session_key", "latest");
+    console.log(this.startTime);
+    console.log(this.actualStartTime);
     const currentNow = this.startTime + (Date.now() - this.actualStartTime);
 
     const afterTime = new Date(

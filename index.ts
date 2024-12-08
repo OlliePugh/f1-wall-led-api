@@ -13,8 +13,8 @@ const app = express();
 app.use(cors());
 
 const port = 8080;
-const fakeStartTime = new Date("2024-12-06T13:10:00.200Z");
-// const fakeStartTime = new Date();
+// const fakeStartTime = new Date("2024-12-06T13:10:00.200Z");
+const fakeStartTime = new Date();
 
 // load in data/singapore-2023-track.json
 const trackData: Coordinate[] = JSON.parse(
@@ -25,10 +25,10 @@ const trackData: Coordinate[] = JSON.parse(
 );
 
 const driverService = new DriverService();
-const drivers = await driverService.getDrivers();
 const trackPositionTranslaterService =
   new PercentageTrackLocationTranslationService(trackData);
-const locationService = new LocationService(40_000, fakeStartTime.getTime());
+const locationService = new LocationService(5_000, fakeStartTime.getTime());
+const drivers = await driverService.getDrivers();
 
 app.get("/locations", (req, res) => {
   console.log("GET /locations");
