@@ -8,7 +8,7 @@ export default class LocationService
 {
   private static readonly LOCATIONS_URL = "https://api.openf1.org/v1/location";
   private static readonly POLLING_TIME = 5000;
-  private static readonly KEEP_DATA_FOR = 10_000;
+  private static readonly KEEP_DATA_FOR = 5_000;
 
   private actualStartTime: number;
   public locations: TrackLocation[] = [];

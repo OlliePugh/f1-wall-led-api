@@ -33,13 +33,13 @@ export default class DriverService implements IDriverService {
     }
 
     return payload.map((driver) => ({
-      fullName: driver.full_name,
-      lastName: driver.last_name,
-      nameAcronym: driver.name_acronym,
-      teamColor:
+      // fullName: driver.full_name,
+      // lastName: driver.last_name,
+      // nameAcronym: driver.name_acronym,
+      c:
         DriverService.TEAM_COLOR_OVERRIDES[driver.team_name] ||
         driver.team_colour,
-      driverNumber: driver.driver_number,
+      n: driver.driver_number,
     }));
   }
 }

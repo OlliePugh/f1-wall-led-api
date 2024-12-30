@@ -13,7 +13,7 @@ const app = express();
 app.use(cors());
 
 const port = 8080;
-const fakeStartTime = new Date("2024-12-06T13:10:00.200Z");
+const fakeStartTime = new Date("2024-12-08T13:10:00.200Z");
 // const fakeStartTime = new Date();
 
 // load in data/singapore-2023-track.json
@@ -27,17 +27,29 @@ const trackData: Coordinate[] = JSON.parse(
 const driverService = new DriverService();
 const trackPositionTranslaterService =
   new PercentageTrackLocationTranslationService(trackData);
-const locationService = new LocationService(5_000, fakeStartTime.getTime());
+const locationService = new LocationService(25_000, fakeStartTime.getTime());
 const drivers = await driverService.getDrivers();
 
 app.get("/locations", (req, res) => {
   console.log("GET /locations");
+  const baselineTime = locationService.locations?.[0]?.date;
+  const baseline =
+    baselineTime != null
+      ? new Date(baselineTime).getTime()
+      : new Date().getTime();
+  console.log("baseline", baseline);
   res.send({
+    baseline: baseline,
+    test: "123",
     locations: locationService.locations.map((x) => ({
-      driverNumber: x.driverNumber,
-      date: new Date(x.date).getTime(),
-      location: trackPositionTranslaterService.translateLocation(x),
+      // number
+      n: x.driverNumber,
+      // date
+      d: new Date(x.date).getTime() - baseline,
+      // location
+      l: trackPositionTranslaterService.translateLocation(x),
     })),
+    drivers: drivers,
   });
 });
 

@@ -1,9 +1,11 @@
 export type Driver = {
-  fullName: string;
-  lastName: string;
-  nameAcronym: string;
-  teamColor: string;
-  driverNumber: number;
+  // fullName: string;
+  // lastName: string;
+  // nameAcronym: string;
+  // colour
+  c: string;
+  // number
+  n: number;
 };
 
 export default interface IDriverService {

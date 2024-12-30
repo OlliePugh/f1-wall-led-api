@@ -1,5 +1,5 @@
 export type TrackLocation = {
-  date: number;
+  date: Date;
   driverNumber: number;
   x: number;
   y: number;
